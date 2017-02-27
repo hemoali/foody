@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'role'
     ];
 
     /**
@@ -37,5 +37,18 @@ class User extends Authenticatable
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany('App\Review');
+    }
+    public function appointments()
+    {
+        return $this->hasMany('App\Appointment');
+    }
+    public function user_appointments()
+    {
+        return $this->belongsToMany('App\Appointment', 'user_appointments')->withPivot('status')->withTimestamps();
     }
 }
