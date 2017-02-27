@@ -5,89 +5,115 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Laravel</title>
+        <title>Foody</title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+              integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="css/style.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+              integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+                integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+                crossorigin="anonymous"></script>
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
 
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Raleway', sans-serif;
-                font-weight: 100;
-                height: 100vh;
-                margin: 0;
-            }
-
-            .full-height {
-                height: 100vh;
-            }
-
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
-
-            .position-ref {
-                position: relative;
-            }
-
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
-
-            .content {
-                text-align: center;
-            }
-
-            .title {
-                font-size: 84px;
-            }
-
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 12px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
-
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
     </head>
     <body>
         <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
+            @if (!session('token'))
                 <div class="top-right links">
-                    @if (Auth::check())
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ url('/login') }}">Login</a>
-                        <a href="{{ url('/register') }}">Register</a>
-                    @endif
+                    <a href="{{ url('/login') }}">Login</a>
+                    <a href="{{ url('/register') }}">Register</a>
+                </div>
+            @else
+                <div class="top-right links">
+                    <a href="{{ url('/logout') }}">Logout</a>
                 </div>
             @endif
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel
+                    Foody
                 </div>
 
-                <div class="links">
-                    <a href="https://laravel.com/docs">Documentation</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
+                <div class="container">
+                    <ul class="nav nav-tabs nav-justified">
+                        <li class="active"><a data-toggle="tab" href="#restaurants">Restaurants</a></li>
+                        @if (session('token'))
+                            <li><a data-toggle="tab" href="#appointments">Appointments</a></li>
+                            <li><a data-toggle="tab" href="#invitations">Invitations</a></li>
+                        @endif
+                    </ul>
+
+                    <div class="tab-content">
+                        <div id="restaurants" class="tab-pane fade in active">
+                            @if (count($restaurants) > 0)
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Location</th>
+                                            <th>Description</th>
+                                            <th>Link</th>
+                                            <th>Phone No.</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($restaurants as $rest)
+                                            <tr>
+                                                <td>{{$rest['name']}}</td>
+                                                <td>{{$rest['location']}}</td>
+                                                <td>{{$rest['desc']}}</td>
+                                                <td>{{$rest['link']}}</td>
+                                                <td>{{$rest['phone_number']}}</td>
+                                                <td><button class="btn btn-success">Reserve!</button></td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                <div>
+                                    <a {!! $currentPage > 1 ? 'href="/' . ( $currentPage-1 ).'"' : '' !!}><button {!! $currentPage > 1 ?  : 'disabled' !!} class="btn btn-primary">Back</button></a>
+                                    <a {!! ($lastPage - $currentPage) >= 1 ? 'href="/' . ( $currentPage+1 ).'"' : '' !!}><button {!! ($lastPage - $currentPage) >= 1 ? '' : 'disabled' !!} class="btn btn-primary">Next</button></a>
+                                </div>
+                            @else
+                                <p><br/>No restaurants!</p>
+                            @endif
+                        </div>
+                        @if (session('token'))
+                            <div id="appointments" class="tab-pane fade">
+                                <table class="table table-striped table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th>Appointment #</th>
+                                        <th>Restaurant</th>
+                                        <th>Time</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($appointments as $appointment)
+                                        <tr>
+                                            <td>{{$appointment['id']}}</td>
+                                            <td>{{$appointment['restaurant']['name']}}</td>
+                                            <td>{{$appointment['time']}}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="invitations" class="tab-pane fade">
+                                Hi 2 !
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
