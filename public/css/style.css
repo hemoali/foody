@@ -160,3 +160,23 @@ html, body {
     color: red;
     margin-bottom: 5px;
 }
+
+.modal {
+    font-weight: bold;
+    color: #000;
+}
+.modal .modal-title,
+.modal .btn-primary {
+    font-weight: bold;
+}
+span.input-group-addon i {
+    color: #009edf;
+    font-size: 17px;
+}
+.modal-body{
+    text-align: center;
+}
+.modal .form-group{
+    width: 70%;
+    margin: 0 auto;
+}

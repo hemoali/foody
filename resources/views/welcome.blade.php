@@ -15,7 +15,7 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
           integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
@@ -37,6 +37,8 @@
         <div class="top-right links">
             <a href="{{ url('/logout') }}">Logout</a>
         </div>
+
+
     @endif
 
     <div class="content">
@@ -79,7 +81,10 @@
                                     <td>{{$rest['phone_number']}}</td>
                                     @if (session('token'))
                                         <td>
-                                            <button class="btn btn-success">Reserve!</button>
+                                            <button class="btn btn-success"
+                                                    onclick="$('#restaurant').val({{$rest['id']}});" data-toggle="modal"
+                                                    data-target="#reservationModal">Reserve!
+                                            </button>
                                         </td>
                                     @endif
                                 </tr>
@@ -176,6 +181,39 @@
                         @else
                             <p><br/>No Invitations!</p>
                         @endif
+                    </div>
+
+                    {{--Reservation Modal--}}
+                    <div id="reservationModal" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Restaurant Reservation</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="post">
+                                        <input type="hidden" id="restaurant" name="restaurant"/>
+                                        <div class="form-group">
+                                            <div class="cols-sm-12">
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-clock-o"
+                                                                                       aria-hidden="true"></i></span>
+                                                    <input type="text" class="form-control" name="time"
+                                                           placeholder="Time..."/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 @endif
             </div>
