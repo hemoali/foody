@@ -28,14 +28,19 @@ class HomeController extends Controller
         // Get user appointments
         $appointments = $this->getUserAppointments();
         $appointmentsData = [];
-        dd($appointments);
         if ($appointments != "Error") {
             $appointments = json_decode($appointments, true);
-            dd($appointments["appointments"]);
             $appointmentsData = $appointments["appointments"];
         }
+        // Get user invitations
+        $invitations = $this->getUserInvitations();
+        $invitationsData = [];
+        if ($invitations != "Error") {
+            $invitations = json_decode($invitations, true);
+            $invitationsData = $invitations;
+        }
 
-        return view('welcome')->with("appointments", $appointmentsData)->with("restaurants", $restaurantsData)->with("currentPage", $currentPage)->with("lastPage", $lastPage);
+        return view('welcome')->with("invitations", $invitationsData)->with("appointments", $appointmentsData)->with("restaurants", $restaurantsData)->with("currentPage", $currentPage)->with("lastPage", $lastPage);
     }
 
     public function showLoginForm()
@@ -160,5 +165,59 @@ class HomeController extends Controller
         } else {
             return "Error";
         }
+    }
+    public function getUserInvitations()
+    {
+        // Call API to get restaurants
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/othersappointments?token=".session('token'));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $result = curl_exec($ch);
+        $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($http_status == 200) {
+            return $result;
+        } else {
+            return "Error";
+        }
+    }
+
+    public function accept(Request $request){
+        $this->validate($request, [
+            'invitation' => 'required'
+        ]);
+        // Fetch data
+        $invitation = $request->get('invitation');
+        // Call API to Login
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/accept/$invitation?token=".session('token'));
+        curl_setopt($ch, CURLOPT_PUT, true);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_exec($ch);
+
+        return back();
+    }
+    public function reject(Request $request){
+        $this->validate($request, [
+            'invitation' => 'required'
+        ]);
+        // Fetch data
+        $invitation = $request->get('invitation');
+        // Call API to Login
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/decline/$invitation?token=".session('token'));
+        curl_setopt($ch, CURLOPT_PUT, true);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_exec($ch);
+
+        return back();
     }
 }

@@ -10,15 +10,17 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/{page}', 'HomeController@paginate');
-Route::get('/', 'HomeController@showMainPage');
 Route::get('/login', 'HomeController@showLoginForm');
 Route::post('/login', 'HomeController@doLogin');
 Route::get('/signup', 'HomeController@showSignupForm');
 Route::post('/signup', 'HomeController@doSignup');
+Route::post('/accept', 'HomeController@accept');
+Route::post('/reject', 'HomeController@reject');
 Route::get('/logout', function(){
     session(['token' => '']);
     return redirect('/');
 });
+Route::get('/{page}', 'HomeController@paginate');
+Route::get('/', 'HomeController@showMainPage');
 
 

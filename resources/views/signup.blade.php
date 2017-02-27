@@ -31,6 +31,9 @@
     <div class="content">
         <div class="modal-dialog">
             <div class="loginmodal-container">
+                <div class="title m-b-md">
+                    Foody
+                </div>
                 <h1>Join Us :D</h1><br>
                 <form method="post" action="signup">
                     {{ csrf_field() }}
