@@ -19,7 +19,8 @@ class SignUpController extends Controller
         } catch ( \Illuminate\Database\QueryException $e) {
             return($e->errorInfo);
         }
-        if (!Config::get('boilerplate.sign_up.release_token')) {
+
+        if(!Config::get('boilerplate.sign_up.release_token')) {
             return response()->json([
                 'status' => 'ok'
             ], 201);
