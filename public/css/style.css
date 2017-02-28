@@ -4,7 +4,7 @@ html, body {
     background-color: #fff;
     color: #636b6f;
     font-family: 'Raleway', sans-serif;
-    font-weight: 100;
+    font-weight: 300;
     height: 100vh;
     margin: 0;
 }
@@ -174,21 +174,24 @@ span.input-group-addon i {
     font-size: 17px;
     width: 15px;
 }
-.modal-body{
+.modal-body {
     text-align: center;
 }
-.modal .form-group{
-    width: 50%;
+.modal .form-group {
+    width: 80%;
     margin: 10px auto;
 }
 .pointer {
     cursor: pointer;
 }
 
-.invited-users{
+.invited-users {
     width: 200px;
     display: table;
 }
-.invited-users .label{
+.invited-users .label {
     display: table-cell;;
+}
+.modal-dialog{
+    width: 400px;
 }
