@@ -16,6 +16,10 @@ Route::get('/signup', 'HomeController@showSignupForm');
 Route::post('/signup', 'HomeController@doSignup');
 Route::post('/accept', 'HomeController@accept');
 Route::post('/reject', 'HomeController@reject');
+Route::post('/invite', 'HomeController@inviteUsers');
+Route::post('/restaurant/edit', 'HomeController@editRestaurant');
+Route::post('/restaurant', 'HomeController@addRestaurant');
+Route::delete('/restaurant/{restID}', 'HomeController@deleteRestaurant');
 Route::get('/logout', function(){
     session(['token' => '']);
     return redirect('/');

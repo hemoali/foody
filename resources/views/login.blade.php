@@ -41,7 +41,6 @@
                     <div class="error">{{ $errors->first('email') }}</div>
                     <input type="password" name="password" placeholder="*******" required>
                     <div class="error">{{ $errors->first('password') }}</div>
-                    <div class="error">{!! Session::has('error-msg') ? Session::get("error-msg") : '' !!}</div>
                     <input type="submit" name="login" class="login loginmodal-submit" value="Login">
                 </form>
                 <div class="login-help">

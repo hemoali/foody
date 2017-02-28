@@ -172,11 +172,23 @@ html, body {
 span.input-group-addon i {
     color: #009edf;
     font-size: 17px;
+    width: 15px;
 }
 .modal-body{
     text-align: center;
 }
 .modal .form-group{
-    width: 70%;
-    margin: 0 auto;
+    width: 50%;
+    margin: 10px auto;
+}
+.pointer {
+    cursor: pointer;
+}
+
+.invited-users{
+    width: 200px;
+    display: table;
+}
+.invited-users .label{
+    display: table-cell;;
 }

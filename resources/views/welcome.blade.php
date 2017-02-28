@@ -16,12 +16,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
           integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
             crossorigin="anonymous"></script>
-
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
 
@@ -35,6 +36,8 @@
         </div>
     @else
         <div class="top-right links">
+            <a data-toggle="modal" class="pointer" data-target="#editRestaurantModal" onclick="$('#restaurant-model-submit-button').html('Add');$('#restaurant-model-title').html('Add Restaurant');document.restaurantForm.action='/restaurant';$('#edit-restaurant-id').val('');$('#edit-restaurant-name').val('');$('#edit-restaurant-location').val('');$('#edit-restaurant-description').val('');$('#edit-restaurant-phone').val('');$('#edit-restaurant-link').val('');">Add Restaurant
+            </a>
             <a href="{{ url('/logout') }}">Logout</a>
         </div>
 
@@ -47,6 +50,8 @@
         </div>
 
         <div class="container">
+            <div class="error">{{ $errors->first()}}</div>
+
             <ul class="nav nav-tabs nav-justified">
                 <li class="active"><a data-toggle="tab" href="#restaurants">Restaurants</a></li>
                 @if (session('token'))
@@ -56,6 +61,7 @@
             </ul>
 
             <div class="tab-content">
+
                 <div id="restaurants" class="tab-pane fade in active">
                     @if (count($restaurants) > 0)
                         <table class="table table-striped table-bordered">
@@ -82,9 +88,20 @@
                                     @if (session('token'))
                                         <td>
                                             <button class="btn btn-success"
+                                                    style="display: block; margin: 2px 1px;width: 100%;min-width: 130px;"
                                                     onclick="$('#restaurant').val({{$rest['id']}});" data-toggle="modal"
                                                     data-target="#reservationModal">Reserve!
                                             </button>
+                                            @if (session('role') == Config::get('constants.USER_ROLES.ADMIN') && !$rest['foursquare_id'])
+                                                <button style="width: 48%;display: inline; margin: 1px 0;text-decoration: underline;font-size: 13px;"
+                                                        class="btn btn-link btn-sm" data-toggle="modal" data-target="#editRestaurantModal" onclick="$('#restaurant-model-submit-button').html('Modify');$('#restaurant-model-title').html('Modify Restaurant');document.restaurantForm.action='/restaurant/edit';$('#edit-restaurant-id').val('{{$rest['id']}}');$('#edit-restaurant-name').val('{{$rest['name']}}');$('#edit-restaurant-location').val('{{$rest['location']}}');$('#edit-restaurant-description').val('{{$rest['desc']}}');$('#edit-restaurant-phone').val('{{$rest['phone_number']}}');$('#edit-restaurant-link').val('{{$rest['link']}}');">Modify
+                                                </button>
+                                                <form  style="width: 49%;display: inline; margin: 1px 0;font-size: 13px;padding: 0;" action="/restaurant/{{$rest['id']}}">{{method_field('DELETE')}} {{csrf_field()}}
+                                                    <button style="text-decoration: underline;" type="submit"
+                                                        class="btn btn-link btn-sm">Delete
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </td>
                                     @endif
                                 </tr>
@@ -113,6 +130,7 @@
                                 <tr>
                                     <th width="25%">Appointment #</th>
                                     <th>Restaurant</th>
+                                    <th>Invitees</th>
                                     <th>Time</th>
                                 </tr>
                                 </thead>
@@ -123,6 +141,13 @@
                                         <td>{{$appointment['restaurant']['name']}}
                                             <br/>{{$appointment['restaurant']['location']}}
                                             <br/>{{$appointment['restaurant']['phone_number']}}</td>
+                                        <td>
+                                            @foreach($appointment['users'] as $user)
+                                                <h4 style="display: inline;">{{$user['name']}}</h4>
+                                                - {{($user['pivot']['status'] == Config::get('constants.APPOINTMENT_STATUS.ACCEPTED')) ? '(Accepted)':''}} {{($user['pivot']['status'] == Config::get('constants.APPOINTMENT_STATUS.REJECTED')) ? '(Rejected)':''}} {{($user['pivot']['status'] == Config::get('constants.APPOINTMENT_STATUS.PENDING')) ? '(Pending)':''}}
+                                                <br/>
+                                            @endforeach
+                                        </td>
                                         <td>{{$appointment['time']}}</td>
                                     </tr>
                                 @endforeach
@@ -183,36 +208,145 @@
                         @endif
                     </div>
 
+                    @if (session('role') == Config::get('constants.USER_ROLES.ADMIN'))
+                        {{--Edit Restaurant Modal--}}
+                        <div id="editRestaurantModal" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+                                <!-- Modal content-->
+                                <form method="post" action="/restaurant/edit" name="restaurantForm">
+                                    {{csrf_field()}}
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title" id="restaurant-model-title">Modify Restaurant</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" id="edit-restaurant-id" name="restaurant_id"/>
+                                            <div class="form-group">
+                                                <div class="cols-sm-12">
+                                                    <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-info"
+                                                                                       aria-hidden="true"></i></span>
+                                                        <input type="text" class="form-control"
+                                                               name="name" id="edit-restaurant-name"
+                                                               placeholder="Name..."/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="cols-sm-12">
+                                                    <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-map-marker"
+                                                                                       aria-hidden="true"></i></span>
+                                                        <input type="text" class="form-control"
+                                                               name="location" id="edit-restaurant-location"
+                                                               placeholder="Location..."/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="cols-sm-12">
+                                                    <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-align-justify"
+                                                                                       aria-hidden="true"></i></span>
+                                                        <input type="text" class="form-control"
+                                                               name="desc" id="edit-restaurant-description"
+                                                               placeholder="Description..."/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="cols-sm-12">
+                                                    <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-link"
+                                                                                       aria-hidden="true"></i></span>
+                                                        <input type="text" class="form-control"
+                                                               name="link" id="edit-restaurant-link"
+                                                               placeholder="Link..."/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="cols-sm-12">
+                                                    <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-phone"
+                                                                                       aria-hidden="true"></i></span>
+                                                        <input type="text" class="form-control"
+                                                               name="phone_number" id="edit-restaurant-phone"
+                                                               placeholder="Phone..."/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-success" id="restaurant-model-submit-button">Modify</button>
+                                            <button type="button" class="btn btn-info" data-dismiss="modal">Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+
                     {{--Reservation Modal--}}
                     <div id="reservationModal" class="modal fade" role="dialog">
                         <div class="modal-dialog">
 
                             <!-- Modal content-->
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Restaurant Reservation</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <form method="post">
-                                        <input type="hidden" id="restaurant" name="restaurant"/>
+                            <form method="post" action="/invite">
+                                {{csrf_field()}}
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Restaurant Reservation</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" id="restaurant" name="restaurant_id"/>
                                         <div class="form-group">
                                             <div class="cols-sm-12">
                                                 <div class="input-group">
                                                     <span class="input-group-addon"><i class="fa fa-clock-o"
                                                                                        aria-hidden="true"></i></span>
-                                                    <input type="text" class="form-control" name="time"
-                                                           placeholder="Time..."/>
+                                                    <input type="text" class="form-control"
+                                                           name="time"
+                                                           placeholder="Time e.g. (2016-12-10 12:14:21) "/>
                                                 </div>
                                             </div>
                                         </div>
-                                    </form>
+                                        <div class="form-group">
+                                            <div class="cols-sm-12">
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-users"
+                                                                                       aria-hidden="true"></i></span>
+                                                    <input type="hidden" value="" id="users_emails"
+                                                           name="users"/>
+                                                    <input type="text" id="emails_field" class="form-control"
+                                                           name="emails" list="emails"
+                                                           placeholder="Invite users (enter email -> press return!)...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="invited-users">
+                                        </div>
+                                        {{--Get All Users--}}
+                                        <datalist id="emails">
+                                            @foreach($users as $user)
+                                                <option value="{{$user['email']}}">
+                                            @endforeach
+                                        </datalist>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Invite</button>
+                                        <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                                    </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-                                </div>
-                            </div>
-
+                            </form>
                         </div>
                     </div>
                 @endif
@@ -220,5 +354,32 @@
         </div>
     </div>
 </div>
+<script>
+    // Detect enter key press
+    var invitedUsersContainer = $("#invited-users");
+    var emailField = $("#emails_field");
+    var usersEmails = $("#users_emails");
+
+    $(function () {
+        emailField.val("");
+        usersEmails.val("");
+    })
+    $("#emails_field").on('keyup', function (e) {
+        if (e.keyCode == 13 && !checkIfEmailExists(emailField.val())) {
+            invitedUsersContainer.append($('<h3 style="margin: 2px 10px;" class="label label-success">' + emailField.val() + ' <span class="pointer" onclick="removeThisEmail(\'' + emailField.val() + '\');this.parentNode.parentNode.removeChild(this.parentNode);">&times;</span><br/></h3>'));
+            usersEmails.val(usersEmails.val() + emailField.val() + ",");
+            emailField.val("");
+        }
+    });
+    function removeThisEmail(email) {
+        if (checkIfEmailExists(email)) {
+            usersEmails.val(usersEmails.val().replace(email + ",", ""));
+        }
+    }
+    function checkIfEmailExists(email) {
+        return ((usersEmails.val()).search("," + email + ",") > 0) || ((usersEmails.val()).search(email + ",") == 0);
+    }
+</script>
 </body>
 </html>
+

@@ -40,7 +40,13 @@ class HomeController extends Controller
             $invitationsData = $invitations;
         }
 
-        return view('welcome')->with("invitations", $invitationsData)->with("appointments", $appointmentsData)->with("restaurants", $restaurantsData)->with("currentPage", $currentPage)->with("lastPage", $lastPage);
+        // Get all Users
+        $users = $this->getAllUsers();
+        if ($users != "Error") {
+            $users = json_decode($users, true);
+        }
+
+        return view('welcome')->with("users", (($users != "Error") ? $users['users']:[]))->with("invitations", $invitationsData)->with("appointments", $appointmentsData)->with("restaurants", $restaurantsData)->with("currentPage", $currentPage)->with("lastPage", $lastPage);
     }
 
     public function showLoginForm()
@@ -75,6 +81,7 @@ class HomeController extends Controller
             $result = json_decode($result, true);
             if (array_key_exists('status', $result) && $result['status'] == 'ok') {
                 session(['token' => $result['token']]);
+                session(['role' => $result['role']]);
                 curl_close($ch);
                 return redirect('/');
             }
@@ -142,41 +149,99 @@ class HomeController extends Controller
 
         $result = curl_exec($ch);
         $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
         if ($http_status == 200) {
             return $result;
         } else {
-            return "Error";
+            session()->flash('error-msg', "Please try again later!");
         }
     }
 
     public function getUserAppointments()
     {
-        // Call API to get restaurants
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/myappointments?token=".session('token'));
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/myappointments?token=" . session('token'));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $result = curl_exec($ch);
         $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
         if ($http_status == 200) {
             return $result;
         } else {
-            return "Error";
+            session()->flash('error-msg', "Please try again later!");
         }
     }
+
     public function getUserInvitations()
     {
-        // Call API to get restaurants
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/othersappointments?token=".session('token'));
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/othersappointments?token=" . session('token'));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $result = curl_exec($ch);
         $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($http_status == 200) {
+            return $result;
+        } else {
+            session()->flash('error-msg', "Please try again later!");
+        }
+    }
+
+    public function accept(Request $request)
+    {
+        $this->validate($request, [
+            'invitation' => 'required'
+        ]);
+        // Fetch data
+        $invitation = $request->get('invitation');
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/accept/$invitation?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_PUT, true);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_exec($ch);
+
+        curl_close($ch);
+        return back();
+    }
+
+    public function reject(Request $request)
+    {
+        $this->validate($request, [
+            'invitation' => 'required'
+        ]);
+        // Fetch data
+        $invitation = $request->get('invitation');
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/decline/$invitation?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_PUT, true);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_exec($ch);
+
+        curl_close($ch);
+        return back();
+    }
+
+    public function getAllUsers()
+    {
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/users?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
         if ($http_status == 200) {
             return $result;
         } else {
@@ -184,40 +249,78 @@ class HomeController extends Controller
         }
     }
 
-    public function accept(Request $request){
-        $this->validate($request, [
-            'invitation' => 'required'
-        ]);
-        // Fetch data
-        $invitation = $request->get('invitation');
-        // Call API to Login
+
+    public function inviteUsers(Request $request)
+    {
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/accept/$invitation?token=".session('token'));
-        curl_setopt($ch, CURLOPT_PUT, true);
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/appointment?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,
+            http_build_query($request->all()));
+
+        curl_exec($ch);
+        curl_close($ch);
+        return back();
+    }
+
+    public function editRestaurant(Request $request)
+    {
+        $this->validate($request, [
+            'restaurant_id' => 'required',
+            'name' => 'required',
+            'location' => 'required',
+            'link' => 'required',
+            'phone_number' => 'required',
+            'desc' => 'required'
+        ]);
+
+        $restID = $request->get('restaurant_id');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/restaurant/$restID?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS,
+            http_build_query($request->all()));
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        curl_exec($ch);
-
+        (curl_exec($ch));
+        curl_close($ch);
         return back();
     }
-    public function reject(Request $request){
-        $this->validate($request, [
-            'invitation' => 'required'
-        ]);
-        // Fetch data
-        $invitation = $request->get('invitation');
-        // Call API to Login
-        $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/decline/$invitation?token=".session('token'));
-        curl_setopt($ch, CURLOPT_PUT, true);
+    public function addRestaurant(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'location' => 'required',
+            'link' => 'required',
+            'phone_number' => 'required',
+            'desc' => 'required'
+        ]);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost:8001/api/restaurant?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,
+            http_build_query($request->all()));
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        curl_exec($ch);
-
+        (curl_exec($ch));
+        curl_close($ch);
         return back();
     }
+
+    public function deleteRestaurant(Request $request, $restID)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL,"http://localhost:8001/api/restaurant/$restID?token=" . session('token'));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return back();
+    }
+
 }
