@@ -96,7 +96,7 @@
                                                 <button style="width: 48%;display: inline; margin: 1px 0;text-decoration: underline;font-size: 13px;"
                                                         class="btn btn-link btn-sm" data-toggle="modal" data-target="#editRestaurantModal" onclick="$('#restaurant-model-submit-button').html('Modify');$('#restaurant-model-title').html('Modify Restaurant');document.restaurantForm.action='/restaurant/edit';$('#edit-restaurant-id').val('{{$rest['id']}}');$('#edit-restaurant-name').val('{{$rest['name']}}');$('#edit-restaurant-location').val('{{$rest['location']}}');$('#edit-restaurant-description').val('{{$rest['desc']}}');$('#edit-restaurant-phone').val('{{$rest['phone_number']}}');$('#edit-restaurant-link').val('{{$rest['link']}}');">Modify
                                                 </button>
-                                                <form  style="width: 49%;display: inline; margin: 1px 0;font-size: 13px;padding: 0;" action="/restaurant/{{$rest['id']}}">{{method_field('DELETE')}} {{csrf_field()}}
+                                                <form  style="width: 49%;display: inline; margin: 1px 0;font-size: 13px;padding: 0;" method="post" action="/restaurant/{{$rest['id']}}">{{method_field('DELETE')}} {{csrf_field()}}
                                                     <button style="text-decoration: underline;" type="submit"
                                                         class="btn btn-link btn-sm">Delete
                                                     </button>
