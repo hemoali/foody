@@ -35,7 +35,7 @@ class FoursquareApiFetcher
             } else if (array_key_exists("address", $venus["location"])) {
                 $rest->location = $venus["location"]["address"];
             } else {
-                $rest->location = "Unkown";
+                $rest->location = "Unknown";
             }
             if (array_key_exists("pluralName", $venus["categories"]))
                 $rest->desc = $venus["categories"]["pluralName"];
@@ -45,7 +45,7 @@ class FoursquareApiFetcher
             if (array_key_exists("phone", $venus["contact"])) {
                 $rest->phone_number = $venus["contact"]["phone"];
             } else {
-                $rest->phone_number = "Unkown";
+                $rest->phone_number = "Unknown";
             }
             $matchThese = array('foursquare_id' => $rest->foursquare_id);
             Restaurant::updateOrCreate($matchThese, $rest->toArray());
